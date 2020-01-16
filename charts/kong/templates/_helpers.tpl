@@ -198,6 +198,10 @@ The name of the service used for the ingress controller's validation webhook
   secret:
     secretName: {{ .name }}
 {{- end }}
+{{- range .Values.plugins.volumes }}
+- name: kong-plugin-{{ .pluginName }}
+{{ toYaml .spec | indent 2 -}}
+{{- end }}
 - name: custom-nginx-template-volume
   configMap:
     name: {{ template "kong.fullname" . }}-default-custom-server-blocks
@@ -247,6 +251,11 @@ The name of the service used for the ingress controller's validation webhook
   mountPath: /opt/kong/plugins/{{ .pluginName }}
   readOnly: true
 {{- end }}
+{{- range .Values.plugins.volumes }}
+- name:  kong-plugin-{{ .pluginName }}
+  mountPath: /opt/kong/plugins/{{ .pluginName }}
+  readOnly: true
+{{- end }}
 {{- end -}}
 
 {{- define "kong.plugins" -}}
@@ -255,6 +264,9 @@ The name of the service used for the ingress controller's validation webhook
 {{- $myList = append $myList .pluginName -}}
 {{- end -}}
 {{- range .Values.plugins.secrets -}}
+  {{ $myList = append $myList .pluginName -}}
+{{- end }}
+{{- range .Values.plugins.volumes -}}
   {{ $myList = append $myList .pluginName -}}
 {{- end }}
 {{- $myList | join "," -}}
